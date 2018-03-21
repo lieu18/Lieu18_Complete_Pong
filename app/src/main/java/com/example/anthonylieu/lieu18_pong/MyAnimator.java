@@ -9,7 +9,10 @@ import android.view.MotionEvent;
 import java.util.Random;
 
 /**
- * Created by AnthonyLieu on 3/19/18.
+ * @author AnthonyLieu
+ * @version March 2018
+ * This is the animator for the pong game. It handles the graphics and the animation
+ * for the paddle as well as the ball
  */
 
 public class MyAnimator implements Animator {

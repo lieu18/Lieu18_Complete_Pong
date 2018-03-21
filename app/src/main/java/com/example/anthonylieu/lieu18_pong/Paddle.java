@@ -4,7 +4,11 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 
 /**
- * Created by AnthonyLieu on 3/19/18.
+ * @author AnthonyLieu
+ * @version March 2018
+ *
+ * This is the Paddle function
+ * It handles the parameters for the paddle in the pong game.
  */
 
 public class Paddle {

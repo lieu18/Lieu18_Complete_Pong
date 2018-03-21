@@ -3,7 +3,11 @@ package com.example.anthonylieu.lieu18_pong;
 import android.graphics.Paint;
 
 /**
- * Created by AnthonyLieu on 3/19/18.
+ * @author AnthonyLieu
+ * @version March 2018
+ *
+ * This is Ball class for Pong
+ * This handles ball parameters when new balls need to be created
  */
 
 public class Ball {
