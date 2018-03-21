@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Lieu18_Pong</string>
+    <string name="new_ball">New Ball</string>
 </resources>

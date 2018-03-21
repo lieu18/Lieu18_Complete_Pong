@@ -14,39 +14,46 @@ import java.util.Random;
 
 public class MyAnimator implements Animator {
 
-    private Random gen = new Random();
+    // instance variables
+    private Random gen = new Random(); // For random number generation
 
-    // Mine
-    // TODO: Random Ball Starting position and direction, but must start in middle like actual game
-    // TODO: Random Ball Start speed and decaying ball speed
     private int countX = 60; // starting X position of Ball
     private int countY = 60; // starting Y position of Ball
-    private int dir;
+    private int dir; // Used later for new direction of ball
 
-    private boolean NW = true;
-    private boolean NE = false;
-    private boolean SW = false;
-    private boolean SE = false;
+    private boolean NW = true; // NorthWest Movement
+    private boolean NE = false; // NorthEast Movement
+    private boolean SW = false; // SouthWest Movement
+    private boolean SE = false; // SouthEast Movement
 
-    private boolean ballOut = false;
+    private boolean ballOut = false; // Ball out of screen
 
-    private Paddle humanPaddle;
-    private Ball ball;
+    private Paddle humanPaddle; // stationary paddle
+    private Ball ball; // ball
 
-    private int radius = 50;
-    private int ballXSpd = gen.nextInt(15) + 5;
-    private int ballYSpd = gen.nextInt(15) + 5;
+    private int radius = 50; // ball radius
+    private int ballXSpd = 15;//gen.nextInt(20) + 10; // random ball x speed ranging from 10 to 20
+    private int ballYSpd = 15;//gen.nextInt(20) + 10; // random ball y speed ranging from 10 to 20
+    private MainActivity pong_main; // for constructor
+
+    /*
+     *
+     */
+    public MyAnimator (MainActivity pong_main) {
+        this.pong_main = pong_main; // Grabs an instance of main activity to reference its variables
+    }
+
 
 
 
     /**
-     * Interval between animation frames: .01 seconds
+     * Interval between animation frames: .001 seconds
      *
      * @return the time interval between frames, in milliseconds.
      */
     @Override
     public int interval() {
-        return 10;
+        return 1;
     }
 
     /**
@@ -87,21 +94,36 @@ public class MyAnimator implements Animator {
     @Override
     public void tick(Canvas g) {
 
-        int boardHeight = g.getHeight();
-        int boardWidth = g.getWidth();
-        int midHeight = g.getHeight()/2;
-        int midWidth = g.getWidth()/2;
+        int boardHeight = g.getHeight(); // board height dimensions
+        int boardWidth = g.getWidth(); // board width dimensions
+        int midHeight = g.getHeight()/2; // middle board height coordinate
+        int midWidth = g.getWidth()/2; // middle board width coordinate
 
-        int humanPaddleLeft = boardWidth - 60;
-        int humanPaddleTop = midHeight - 150;
-        int humanPaddleRight = boardWidth - 10;
-        int humanPaddleBot = midHeight + 150;
+        int paddleSize; // Paddle Size
+
+        if (pong_main.difficultyLevels == 0) { // Easy Level
+            paddleSize = 200;
+        }
+        else if (pong_main.difficultyLevels == 1) { // Medium Level
+            paddleSize = 150;
+        }
+        else if (pong_main.difficultyLevels == 2) { // Hard Level
+            paddleSize = 100;
+        }
+        else { // Insane Level
+            paddleSize = 50;
+        }
+
+        int humanPaddleLeft = boardWidth - 60; // paddle left
+        int humanPaddleTop = midHeight - paddleSize; // paddle top
+        int humanPaddleRight = boardWidth - 10; // paddle right
+        int humanPaddleBot = midHeight + paddleSize; // paddle bottom
+
 
         // Multiplying countX or countY changes the speed of the ball in its respected X or Y direction
-        // % by the board dimensions loops the ball back into the board.
-        // Don't need the % to loop the ball back anymore.
-        int ballX = (countX*ballXSpd);    //%boardWidth;
-        int ballY = (countY*ballYSpd);    //%boardHeight;
+        int ballX = (countX*ballXSpd);
+        int ballY = (countY*ballYSpd);
+
 
 
         // Determines how the ball moves depending on its direction
@@ -123,21 +145,27 @@ public class MyAnimator implements Animator {
         }
 
 
-       // if (ballX < 0) ballX += boardWidth;
-       // if (ballY < 0) ballY += boardHeight;
-
-        // This causes a slight bug in the sense that the ball will be past the board's dimensions but proceeds
-        // bounce back once it's y coordinates matches.
-        // I should check for the dimensions to be on the screen. If they aren't then the game should stop until
-        // a new ball is somehow introduced.
-        // TODO: Once ball disappears a new ball should be randomly generated to replace it.
-
-
+        // Checks if Ball is out of bounds of the board
         if ((ballX - 60) > boardWidth) {
             ballOut = true;
         }
-
-        else if (((ballX + 60) >= humanPaddleLeft) && (ballY >= humanPaddleTop) && (ballY <= humanPaddleBot)) {
+        // Check if ball hits top left corner
+        else if (((ballX - 60) <= 30) && (ballY - 60) <= 30) {
+            NW = false;
+            NE = false;
+            SW = false;
+            SE = true;
+        }
+        // Check if ball hits bottom left corner
+        else if (((ballX - 60) <= 30) && (ballY + 60) >= boardHeight - 30) {
+            NW = false;
+            NE = true;
+            SW = false;
+            SE = false;
+        }
+        // Checks if ball hits the paddle
+        else if (((ballX + 60) >= humanPaddleLeft) &&
+                  (ballY >= humanPaddleTop) && (ballY <= humanPaddleBot)) {
             if (NE) {
                 NW = true;
                 NE = false;
@@ -151,8 +179,8 @@ public class MyAnimator implements Animator {
                 SE = false;
             }
         }
-
-        else if ((ballX - 60) <= 30) { // hits left side
+        // Checks if ball hits the left wall
+        else if ((ballX - 60) <= 30) {
             if (NW) {
                 NW = false;
                 NE = true;
@@ -166,7 +194,8 @@ public class MyAnimator implements Animator {
                 SE = true;
             }
         }
-        else if ((ballY + 60) >= boardHeight - 30) { // hits bottom
+        // Checks if ball hits the bottom wall
+        else if ((ballY + 60) >= boardHeight - 30) {
             if (SW) {
                 NW = true;
                 NE = false;
@@ -180,7 +209,8 @@ public class MyAnimator implements Animator {
                 SE = false;
             }
         }
-        else if ((ballY - 60) <= 30) { // hits top
+        // Checks if ball hits top wall
+        else if ((ballY - 60) <= 30) {
             if (NW) {
                 NW = false;
                 NE = false;
@@ -194,13 +224,16 @@ public class MyAnimator implements Animator {
                 SE = true;
             }
         }
-
-        if (ballOut) {
+        // move out of bounds ball to a new coordinate with a random location and velocity
+        if (ballOut && pong_main.newBall) {
             ballOut = false;
+            pong_main.newBall = false;
+
             countX = 60;
             countY = 60;
-            ballXSpd = gen.nextInt(15) + 5;
-            ballYSpd = gen.nextInt(15) + 5;
+            ballXSpd = gen.nextInt(20) + 5;
+            ballYSpd = gen.nextInt(20) + 5;
+
             dir = gen.nextInt(3);
             if (dir == 0) {
                 NW = true;
@@ -227,19 +260,27 @@ public class MyAnimator implements Animator {
                 SE = true;
             }
         }
+        else if (ballOut && !pong_main.newBall) {
+            ballX = boardWidth + 70;
+            ballY = boardHeight + 70;
+        }
 
         /*
-		 * Cite This
-		 * https://stackoverflow.com/questions/16528572/draw-dash-line-on-a-canvas
-		 */
+         * External Citation
+         * Date: March 18, 2018
+         * Problem: Wanted to find a better way to created a Dashed Line Effect
+         * Resource: https://stackoverflow.com/questions/16528572/draw-dash-line-on-a-canvas
+         * Solution: I used this example to create the dashed line effect
+         */
+
         Paint yellowPaint = new Paint();
         yellowPaint.setColor(Color.YELLOW);
         yellowPaint.setStrokeWidth(10f);
+
         // Middle segmented yellow line to divide the board in half.
         yellowPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         yellowPaint.setPathEffect(new DashPathEffect(new float[] {50,10}, 0));
         g.drawLine(midWidth, 0f, midWidth, boardHeight, yellowPaint);
-
 
 
         Paint whitePaint = new Paint();
@@ -250,14 +291,13 @@ public class MyAnimator implements Animator {
         g.drawRect(0f, 0f, 30f, boardHeight, whitePaint); // right
 
 
-
         // Blue paddle on the left side
         Paint bluePaint = new Paint();
         bluePaint.setColor(Color.BLUE);
         humanPaddle = new Paddle(humanPaddleLeft, humanPaddleTop, humanPaddleRight, humanPaddleBot, bluePaint);
         g.drawRect(humanPaddle.paddleBounds, humanPaddle.paddleColor);
 
-
+        // Green Ball
         Paint greenPaint = new Paint();
         greenPaint.setColor(Color.GREEN);
         ball = new Ball(ballX, ballY, radius, greenPaint);
@@ -266,11 +306,8 @@ public class MyAnimator implements Animator {
 
     }
 
-    /**
-     *
-     */
     @Override
     public void onTouch(MotionEvent event) {
-
+        // do nothing for now
     }
 }
