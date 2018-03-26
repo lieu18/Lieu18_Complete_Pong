@@ -4,9 +4,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import java.util.Random;
+
+import static com.example.anthonylieu.lieu18_pong.MyAnimator.Direction.*;
 
 /**
  * @author AnthonyLieu
@@ -20,14 +23,7 @@ public class MyAnimator implements Animator {
     // instance variables
     private Random gen = new Random(); // For random number generation
 
-    private int countX = 60; // starting X position of Ball
-    private int countY = 60; // starting Y position of Ball
     private int dir; // Used later for new direction of ball
-
-    private boolean NW = true; // NorthWest Movement
-    private boolean NE = false; // NorthEast Movement
-    private boolean SW = false; // SouthWest Movement
-    private boolean SE = false; // SouthEast Movement
 
     private boolean ballOut = false; // Ball out of screen
 
@@ -37,17 +33,41 @@ public class MyAnimator implements Animator {
     private int radius = 50; // ball radius
     private int ballXSpd = 15;//gen.nextInt(20) + 10; // random ball x speed ranging from 10 to 20
     private int ballYSpd = 15;//gen.nextInt(20) + 10; // random ball y speed ranging from 10 to 20
+
+    private int ballXDir = 1; // X Direction of Ball
+    private int ballYDir = 1; // Y Direction of Ball
+
+    private int ballXVel; // X Velocity of Ball
+    private int ballYVel; // Y Velocity of Ball
+
+    private int ballX; // Ball Current X Position
+    private int ballY; // Ball Current Y Position
+
     private MainActivity pong_main; // for constructor
 
-    /*
-     *
+    private int paddleMid; // Middle of Paddle Y Coordinates
+
+    private Direction direction = NW; // Direction Variable
+
+    //private int ballLives = 2;
+
+
+    /**
+     * Constructor for MyAnimator
      */
     public MyAnimator (MainActivity pong_main) {
         this.pong_main = pong_main; // Grabs an instance of main activity to reference its variables
     }
 
-
-
+    /**
+     * Enum Definition for Direction Variables
+     */
+    public enum Direction {
+        NW,
+        NE,
+        SW,
+        SE
+    }
 
     /**
      * Interval between animation frames: .001 seconds
@@ -117,36 +137,58 @@ public class MyAnimator implements Animator {
             paddleSize = 50;
         }
 
+        int humanPaddleTop; // Top coordinate of paddle
+        int humanPaddleBot; // Bottom coordinate of paddle
+
+        // Paddle Motion Controls
+        // Check if Paddle is at the top of the screen. If it is then stop it at the top
+        if (paddleMid - paddleSize <= 30) {
+            humanPaddleTop = 30;
+            humanPaddleBot = paddleSize*2 + 30;
+        }
+        // Check if Paddle is at the bottom of the screen. If it is then stop it at the bottom
+        else if (paddleMid + paddleSize >= boardHeight - 30) {
+            humanPaddleTop = (boardHeight - 30) - (paddleSize * 2);
+            humanPaddleBot = boardHeight - 30;
+        }
+        // Paddle Motion when in middle of screen not touching walls
+        else {
+            humanPaddleTop = paddleMid - paddleSize;
+            humanPaddleBot = paddleMid + paddleSize;
+        }
+
         int humanPaddleLeft = boardWidth - 60; // paddle left
-        int humanPaddleTop = midHeight - paddleSize; // paddle top
-        int humanPaddleRight = boardWidth - 10; // paddle right
-        int humanPaddleBot = midHeight + paddleSize; // paddle bottom
+        int humanPaddleRight = boardWidth - 30; // paddle right
 
+        // Ball Velocity is calculated based on its speed and direction
+        ballXVel = ballXDir * ballXSpd;
+        ballYVel = ballYDir * ballYSpd;
 
-        // Multiplying countX or countY changes the speed of the ball in its respected X or Y direction
-        int ballX = (countX*ballXSpd);
-        int ballY = (countY*ballYSpd);
-
-
+        // Ball location is then determined by incrementing by its respective velocity
+        ballX += ballXVel;
+        ballY += ballYVel;
 
         // Determines how the ball moves depending on its direction
-        if (NW) {
-            countX--;
-            countY--;
+        switch (direction) {
+            case NW:
+                ballXDir = -1;
+                ballYDir = -1;
+                break;
+            case NE:
+                ballXDir = 1;
+                ballYDir = -1;
+                break;
+            case SW:
+                ballXDir = -1;
+                ballYDir = 1;
+                break;
+            case SE:
+                ballXDir = 1;
+                ballYDir = 1;
+                break;
+            default:
+                Log.i("Direction", "Something broke");
         }
-        if (NE) {
-            countX++;
-            countY--;
-        }
-        if (SW) {
-            countX--;
-            countY++;
-        }
-        if (SE) {
-            countX++;
-            countY++;
-        }
-
 
         // Checks if Ball is out of bounds of the board
         if ((ballX - 60) > boardWidth) {
@@ -154,118 +196,96 @@ public class MyAnimator implements Animator {
         }
         // Check if ball hits top left corner
         else if (((ballX - 60) <= 30) && (ballY - 60) <= 30) {
-            NW = false;
-            NE = false;
-            SW = false;
-            SE = true;
+            direction = SE;
         }
         // Check if ball hits bottom left corner
         else if (((ballX - 60) <= 30) && (ballY + 60) >= boardHeight - 30) {
-            NW = false;
-            NE = true;
-            SW = false;
-            SE = false;
+            direction = NE;
         }
         // Checks if ball hits the paddle
         else if (((ballX + 60) >= humanPaddleLeft) &&
                   (ballY >= humanPaddleTop) && (ballY <= humanPaddleBot)) {
-            if (NE) {
-                NW = true;
-                NE = false;
-                SW = false;
-                SE = false;
+            if (direction == NE) {
+                direction = NW;
+                ballXSpd += gen.nextInt(5)+1; // Increase ballXSpd by a number from 1 to 5
+                ballYSpd += gen.nextInt(5)+1; // Increase ballYSpd by a number from 1 to 5
+                pong_main.score++;
             }
-            if (SE) {
-                NW = false;
-                NE = false;
-                SW = true;
-                SE = false;
+            if (direction == SE) {
+                direction = SW;
+                ballXSpd += gen.nextInt(5)+1;
+                ballYSpd += gen.nextInt(5)+1;
+                pong_main.score++;
             }
         }
         // Checks if ball hits the left wall
         else if ((ballX - 60) <= 30) {
-            if (NW) {
-                NW = false;
-                NE = true;
-                SW = false;
-                SE = false;
+            if (direction == NW) {
+                direction = NE;
             }
-            if (SW) {
-                NW = false;
-                NE = false;
-                SW = false;
-                SE = true;
+            if (direction == SW) {
+                direction = SE;
             }
         }
         // Checks if ball hits the bottom wall
         else if ((ballY + 60) >= boardHeight - 30) {
-            if (SW) {
-                NW = true;
-                NE = false;
-                SW = false;
-                SE = false;
+            if (direction == SW) {
+                direction = NW;
             }
-            if (SE) {
-                NW = false;
-                NE = true;
-                SW = false;
-                SE = false;
+            if (direction == SE) {
+                direction = NE;
             }
         }
         // Checks if ball hits top wall
         else if ((ballY - 60) <= 30) {
-            if (NW) {
-                NW = false;
-                NE = false;
-                SW = true;
-                SE = false;
+            if (direction == NW) {
+                direction = SW;
             }
-            if (NE) {
-                NW = false;
-                NE = false;
-                SW = false;
-                SE = true;
+            if (direction == NE) {
+                direction = SE;
             }
         }
         // move out of bounds ball to a new coordinate with a random location and velocity
-        if (ballOut && pong_main.newBall) {
+        if (ballOut && pong_main.newBall && (pong_main.ballLives > 0)) {
             ballOut = false;
             pong_main.newBall = false;
 
-            countX = 60;
-            countY = 60;
-            ballXSpd = gen.nextInt(20) + 5;
-            ballYSpd = gen.nextInt(20) + 5;
+            ballX = midWidth;
+            ballY = gen.nextInt(boardHeight - 60) + 60;
+
+            ballXDir = gen.nextBoolean() ? 1 : -1;
+            ballYDir = gen.nextBoolean() ? 1 : -1;
+
+            ballXSpd = gen.nextInt(20) + 15;
+            ballYSpd = gen.nextInt(20) + 15;
 
             dir = gen.nextInt(3);
             if (dir == 0) {
-                NW = true;
-                NE = false;
-                SW = false;
-                SE = false;
+                direction = NW;
             }
             else if (dir == 1) {
-                NW = false;
-                NE = true;
-                SW = false;
-                SE = false;
+                direction = NE;
             }
             else if (dir == 2) {
-                NW = false;
-                NE = false;
-                SW = true;
-                SE = false;
+                direction = SW;
             }
             else {
-                NW = false;
-                NE = false;
-                SW = false;
-                SE = true;
+                direction = SE;
             }
         }
         else if (ballOut && !pong_main.newBall) {
             ballX = boardWidth + 70;
             ballY = boardHeight + 70;
+            if (pong_main.subScore) {
+                if (pong_main.score < 3) {
+                    pong_main.score = 0;
+                    pong_main.subScore = false;
+                }
+                else {
+                    pong_main.score -= 3;
+                    pong_main.subScore = false;
+                }
+            }
         }
 
         /*
@@ -286,8 +306,17 @@ public class MyAnimator implements Animator {
         g.drawLine(midWidth, 0f, midWidth, boardHeight, yellowPaint);
 
 
+        /*
+         * External Citation
+         * Date: March 25, 2018
+         * Problem: Did not know to to change font size
+         * Resource: https://stackoverflow.com/questions/12166476/android-canvas-drawtext-set-font-size-from-width
+         * Solution: I saw the usage of setTextSize in the link and used it myself.
+         */
+
         Paint whitePaint = new Paint();
         whitePaint.setColor(Color.WHITE);
+        whitePaint.setTextSize(40);
         // Three white "walls" of the game.
         g.drawRect(0f, 0f, boardWidth, 30f, whitePaint); // top
         g.drawRect(0f, (boardHeight - 30), boardWidth, boardHeight, whitePaint); // bottom
@@ -301,16 +330,34 @@ public class MyAnimator implements Animator {
         g.drawRect(humanPaddle.paddleBounds, humanPaddle.paddleColor);
 
         // Green Ball
-        Paint greenPaint = new Paint();
-        greenPaint.setColor(Color.GREEN);
-        ball = new Ball(ballX, ballY, radius, greenPaint);
+        Paint redPaint = new Paint();
+        redPaint.setColor(Color.RED);
+        ball = new Ball(ballX, ballY, radius, redPaint);
         g.drawCircle(ball.ballCX, ball.ballCY, ball.ballRad, ball.ballColor);
 
+        // Text and Ball Drawing for Remaining Ball Lives
+        int i;
+        for (i = 0; i < pong_main.ballLives - 1; i++) {
+            g.drawText("Balls Remaining: ", midWidth + 20, 75, whitePaint);
+            g.drawCircle(midWidth + 350 + (i * 50), 60, 20, whitePaint);
+        }
+        g.drawText("Score: " + String.valueOf(pong_main.score), 50, 70, whitePaint);
 
     }
 
+    /*
+     * External Citation
+     * Date: March 25, 2018
+     * Problem: I knew nothing about MotionEvent methods and wanted to use this to move the paddle
+     * Resource: https://developer.android.com/reference/android/view/MotionEvent.html
+     * Solution: ACTION_MOVE was exactly what I wanted to use for my paddle movement
+     */
+
     @Override
     public void onTouch(MotionEvent event) {
-        // do nothing for now
+        // Detect Pressed Screen Movement
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            paddleMid = (int) event.getY();
+        }
     }
 }
