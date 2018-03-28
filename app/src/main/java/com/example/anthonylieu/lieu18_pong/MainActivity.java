@@ -2,12 +2,10 @@ package com.example.anthonylieu.lieu18_pong;
 
 import android.os.Bundle;
 import android.app.Activity;
-import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 
@@ -50,6 +48,7 @@ public class MainActivity extends Activity {
     public int ballLives = 5; // Number of balls each game has
     public int score; // The successful paddle hits in a game, subtracting the penalty for missing the paddle
     public boolean subScore = true; // Boolean for the penalty subtraction happened yet.
+    public boolean clickedNewBall;
 
     /**
      * creates an AnimationSurface containing a MyAnimator.
@@ -69,9 +68,12 @@ public class MainActivity extends Activity {
         newBallButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                newBall = true;
-                ballLives--;
-                subScore = true;
+                if (!clickedNewBall) {
+                    clickedNewBall = true;
+                    newBall = true;
+                    ballLives--;
+                    subScore = true;
+                }
             }
         });
 

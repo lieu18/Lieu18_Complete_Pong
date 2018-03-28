@@ -30,7 +30,7 @@ public class MyAnimator implements Animator {
     private Paddle humanPaddle; // stationary paddle
     private Ball ball; // ball
 
-    private int radius = 50; // ball radius
+    private int radius = 40; // ball radius
     private int ballXSpd = 15;//gen.nextInt(20) + 10; // random ball x speed ranging from 10 to 20
     private int ballYSpd = 15;//gen.nextInt(20) + 10; // random ball y speed ranging from 10 to 20
 
@@ -40,17 +40,14 @@ public class MyAnimator implements Animator {
     private int ballXVel; // X Velocity of Ball
     private int ballYVel; // Y Velocity of Ball
 
-    private int ballX; // Ball Current X Position
-    private int ballY; // Ball Current Y Position
+    private int ballX = 300; // Ball Current X Position
+    private int ballY = 100; // Ball Current Y Position
 
     private MainActivity pong_main; // for constructor
 
     private int paddleMid; // Middle of Paddle Y Coordinates
 
     private Direction direction = NW; // Direction Variable
-
-    //private int ballLives = 2;
-
 
     /**
      * Constructor for MyAnimator
@@ -118,8 +115,7 @@ public class MyAnimator implements Animator {
     public void tick(Canvas g) {
 
         int boardHeight = g.getHeight(); // board height dimensions
-        int boardWidth = g.getWidth(); // board width dimensions
-        int midHeight = g.getHeight()/2; // middle board height coordinate
+        int boardWidth = g.getWidth(); // board width dimension
         int midWidth = g.getWidth()/2; // middle board width coordinate
 
         int paddleSize; // Paddle Size
@@ -142,14 +138,14 @@ public class MyAnimator implements Animator {
 
         // Paddle Motion Controls
         // Check if Paddle is at the top of the screen. If it is then stop it at the top
-        if (paddleMid - paddleSize <= 30) {
-            humanPaddleTop = 30;
-            humanPaddleBot = paddleSize*2 + 30;
+        if (paddleMid - paddleSize <= 45) {
+            humanPaddleTop = 45;
+            humanPaddleBot = paddleSize*2 + 45;
         }
         // Check if Paddle is at the bottom of the screen. If it is then stop it at the bottom
-        else if (paddleMid + paddleSize >= boardHeight - 30) {
-            humanPaddleTop = (boardHeight - 30) - (paddleSize * 2);
-            humanPaddleBot = boardHeight - 30;
+        else if (paddleMid + paddleSize >= boardHeight - 45) {
+            humanPaddleTop = (boardHeight - 45) - (paddleSize * 2);
+            humanPaddleBot = boardHeight - 45;
         }
         // Paddle Motion when in middle of screen not touching walls
         else {
@@ -195,11 +191,11 @@ public class MyAnimator implements Animator {
             ballOut = true;
         }
         // Check if ball hits top left corner
-        else if (((ballX - 60) <= 30) && (ballY - 60) <= 30) {
+        else if (((ballX - 60) <= 45) && (ballY - 60) <= 45) {
             direction = SE;
         }
         // Check if ball hits bottom left corner
-        else if (((ballX - 60) <= 30) && (ballY + 60) >= boardHeight - 30) {
+        else if (((ballX - 60) <= 45) && (ballY + 60) >= boardHeight - 45) {
             direction = NE;
         }
         // Checks if ball hits the paddle
@@ -219,7 +215,7 @@ public class MyAnimator implements Animator {
             }
         }
         // Checks if ball hits the left wall
-        else if ((ballX - 60) <= 30) {
+        else if ((ballX - 60) <= 45) {
             if (direction == NW) {
                 direction = NE;
             }
@@ -228,7 +224,7 @@ public class MyAnimator implements Animator {
             }
         }
         // Checks if ball hits the bottom wall
-        else if ((ballY + 60) >= boardHeight - 30) {
+        else if ((ballY + 60) >= boardHeight - 45) {
             if (direction == SW) {
                 direction = NW;
             }
@@ -237,7 +233,7 @@ public class MyAnimator implements Animator {
             }
         }
         // Checks if ball hits top wall
-        else if ((ballY - 60) <= 30) {
+        else if ((ballY - 60) <= 45) {
             if (direction == NW) {
                 direction = SW;
             }
@@ -245,7 +241,8 @@ public class MyAnimator implements Animator {
                 direction = SE;
             }
         }
-        // move out of bounds ball to a new coordinate with a random location and velocity
+        // Check if ball is out of bounds and there are still remaining lives
+        // New ball start in a random position in the middle of the game board with a random velocity
         if (ballOut && pong_main.newBall && (pong_main.ballLives > 0)) {
             ballOut = false;
             pong_main.newBall = false;
@@ -273,9 +270,11 @@ public class MyAnimator implements Animator {
                 direction = SE;
             }
         }
+        // Holds ball out of bounds until new ball button is pressed
         else if (ballOut && !pong_main.newBall) {
             ballX = boardWidth + 70;
             ballY = boardHeight + 70;
+            pong_main.clickedNewBall = false; // prevents the loss of multiple lives while ball is still in play
             if (pong_main.subScore) {
                 if (pong_main.score < 3) {
                     pong_main.score = 0;
@@ -318,9 +317,9 @@ public class MyAnimator implements Animator {
         whitePaint.setColor(Color.WHITE);
         whitePaint.setTextSize(40);
         // Three white "walls" of the game.
-        g.drawRect(0f, 0f, boardWidth, 30f, whitePaint); // top
-        g.drawRect(0f, (boardHeight - 30), boardWidth, boardHeight, whitePaint); // bottom
-        g.drawRect(0f, 0f, 30f, boardHeight, whitePaint); // right
+        g.drawRect(0f, 0f, boardWidth, 45f, whitePaint); // top
+        g.drawRect(0f, (boardHeight - 45), boardWidth, boardHeight, whitePaint); // bottom
+        g.drawRect(0f, 0f, 45f, boardHeight, whitePaint); // right
 
 
         // Blue paddle on the left side
@@ -329,19 +328,21 @@ public class MyAnimator implements Animator {
         humanPaddle = new Paddle(humanPaddleLeft, humanPaddleTop, humanPaddleRight, humanPaddleBot, bluePaint);
         g.drawRect(humanPaddle.paddleBounds, humanPaddle.paddleColor);
 
-        // Green Ball
+        // Red Ball
         Paint redPaint = new Paint();
         redPaint.setColor(Color.RED);
         ball = new Ball(ballX, ballY, radius, redPaint);
         g.drawCircle(ball.ballCX, ball.ballCY, ball.ballRad, ball.ballColor);
 
+
         // Text and Ball Drawing for Remaining Ball Lives
         int i;
         for (i = 0; i < pong_main.ballLives - 1; i++) {
-            g.drawText("Balls Remaining: ", midWidth + 20, 75, whitePaint);
-            g.drawCircle(midWidth + 350 + (i * 50), 60, 20, whitePaint);
+            g.drawText("Balls Remaining: ", midWidth + 20, 85, whitePaint);
+            g.drawCircle(midWidth + 350 + (i * 50), 70, 20, whitePaint);
         }
-        g.drawText("Score: " + String.valueOf(pong_main.score), 50, 70, whitePaint);
+        // Draws the Text for the running score of the game on the board
+        g.drawText("Score: " + String.valueOf(pong_main.score), 50, 80, whitePaint);
 
     }
 
