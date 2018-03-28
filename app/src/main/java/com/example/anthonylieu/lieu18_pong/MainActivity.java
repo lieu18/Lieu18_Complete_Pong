@@ -15,14 +15,14 @@ import android.widget.Spinner;
  * This is the activity for the Pong game. It attaches a PongAnimator to
  * an AnimationSurface.
  *
- * Enhancements to Part A:
+ * Enhancements to Part 3A:
  * Created a New Ball button. Once the ball goes off screen, the game will wait until the user
  * presses the New Ball button to start the game again with the ball starting at a random location
  * with a random velocity
  *
  * Created a Spinner to adjust the size of the paddle to change the difficulty level of the game.
  *
- * Enhancements to Part B:
+ * Enhancements to Part 3B:
  * 1) When the ball hits the paddle the speed of the ball increases at a random value from 1 to 5
  *    This makes the game harder as the player continues to score points.
  *
